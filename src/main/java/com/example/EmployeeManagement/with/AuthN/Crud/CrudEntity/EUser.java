@@ -16,7 +16,7 @@ public class EUser {
     @Column(nullable = false)
     private String firstName;
     @Column(nullable = false)
-    private String LastName;
+    private String lastName;
     @Column(nullable = false, unique = true)
     private String email;
 }
