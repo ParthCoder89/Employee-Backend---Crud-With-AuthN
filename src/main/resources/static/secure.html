@@ -1,0 +1,18 @@
+<button onclick="callSecure()">Call Secure API</button>
+<p id="output"></p>
+
+<script>
+    async function callSecure() {
+        const token = localStorage.getItem("token");
+
+        const response = await fetch("http://localhost:8080/api/secure", {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const result = await response.text();
+        document.getElementById("output").innerText = result;
+    }
+</script>
