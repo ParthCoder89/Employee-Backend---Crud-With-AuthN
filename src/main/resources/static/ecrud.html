@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee CRUD</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            padding: 30px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px black;
+        }
+
+        input, button {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+            width: 100%;
+        }
+
+        input {
+            background: #334155;
+            color: white;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #334155;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: #334155;
+        }
+
+        .btn-delete {
+            background: red;
+        }
+
+        .btn-delete:hover {
+            background: darkred;
+        }
+
+        .btn-edit {
+            background: orange;
+            color: black;
+        }
+
+        .btn-edit:hover {
+            background: darkorange;
+        }
+
+        .logout-btn {
+            background: #dc2626;
+            margin-top: 15px;
+        }
+
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
+
+        #msg {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+    <h2>Employee CRUD (JWT Protected)</h2>
+
+    <h3>Add / Update Employee</h3>
+
+    <input type="hidden" id="empId">
+
+    <input type="text" id="firstName" placeholder="Enter First Name">
+    <input type="text" id="lastName" placeholder="Enter Last Name">
+    <input type="email" id="email" placeholder="Enter Email">
+
+    <button onclick="saveEmployee()">Save Employee</button>
+
+    <div id="msg"></div>
+
+    <h3 style="margin-top: 30px;">Employee List</h3>
+
+    <button onclick="loadEmployees()">Refresh Employees</button>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>FirstName</th>
+            <th>LastName</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+
+        <tbody id="empTableBody">
+        </tbody>
+    </table>
+
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<script>
+    const BASE_URL = "http://localhost:8080/api/employeecrud";
+    // 👆 if tumhara endpoint different hai to change kar lena
+
+    function getToken() {
+        return localStorage.getItem("token");
+    }
+
+    // If token missing => redirect
+    if (!getToken()) {
+        alert("Please login first!");
+        window.location.href = "login.html";
+    }
+
+    async function loadEmployees() {
+        const response = await fetch(BASE_URL, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + getToken()
+            }
+        });
+
+        if (!response.ok) {
+            document.getElementById("msg").style.color = "red";
+            document.getElementById("msg").innerHTML = "Error loading employees!";
+            return;
+        }
+
+        const employees = await response.json();
+
+        const tbody = document.getElementById("empTableBody");
+        tbody.innerHTML = "";
+
+        employees.forEach(emp => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${emp.id}</td>
+                    <td>${emp.firstName}</td>
+                    <td>${emp.lastName}</td>
+                    <td>${emp.email}</td>
+                    <td>
+                        <button class="btn-edit"
+                            onclick="editEmployee(${emp.id}, '${emp.firstName}', '${emp.lastName}', '${emp.email}')">
+                            Edit
+                        </button>
+
+                        <button class="btn-delete"
+                            onclick="deleteEmployee(${emp.id})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    async function saveEmployee() {
+        const id = document.getElementById("empId").value;
+        const firstName = document.getElementById("firstName").value;
+        const lastName = document.getElementById("lastName").value;
+        const email = document.getElementById("email").value;
+
+        if (firstName.trim() === "" || lastName.trim() === "" || email.trim() === "") {
+            document.getElementById("msg").style.color = "red";
+            document.getElementById("msg").innerHTML = "All fields are required!";
+            return;
+        }
+
+        const employeeData = {
+            firstName: firstName,
+            lastName: lastName,
+            email: email
+        };
+
+        let url = BASE_URL;
+        let method = "POST";
+
+        // Update mode
+        if (id) {
+            url = BASE_URL + "/" + id;
+            method = "PUT";
+            employeeData.id = id;
+        }
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + getToken()
+            },
+            body: JSON.stringify(employeeData)
+        });
+
+        if (response.ok) {
+            document.getElementById("msg").style.color = "lightgreen";
+            document.getElementById("msg").innerHTML = id ? "Employee Updated Successfully!" : "Employee Added Successfully!";
+
+            // clear fields
+            document.getElementById("empId").value = "";
+            document.getElementById("firstName").value = "";
+            document.getElementById("lastName").value = "";
+            document.getElementById("email").value = "";
+
+            loadEmployees();
+        } else {
+            const err = await response.text();
+            document.getElementById("msg").style.color = "red";
+            document.getElementById("msg").innerHTML = "Error: " + err;
+        }
+    }
+
+    function editEmployee(id, firstName, lastName, email) {
+        document.getElementById("empId").value = id;
+        document.getElementById("firstName").value = firstName;
+        document.getElementById("lastName").value = lastName;
+        document.getElementById("email").value = email;
+
+        document.getElementById("msg").style.color = "yellow";
+        document.getElementById("msg").innerHTML = "Editing Employee ID: " + id;
+    }
+
+    async function deleteEmployee(id) {
+        if (!confirm("Are you sure you want to delete employee ID: " + id + " ?")) return;
+
+        const response = await fetch(BASE_URL + "/" + id, {
+            method: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + getToken()
+            }
+        });
+
+        if (response.ok) {
+            document.getElementById("msg").style.color = "lightgreen";
+            document.getElementById("msg").innerHTML = "Employee Deleted Successfully!";
+            loadEmployees();
+        } else {
+            const err = await response.text();
+            document.getElementById("msg").style.color = "red";
+            document.getElementById("msg").innerHTML = "Error: " + err;
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem("token");
+        alert("Logged out!");
+        window.location.href = "login.html";
+    }
+
+    // Auto load
+    loadEmployees();
+    console.log("Token:", getToken());
+
+
+</script>
+
+</body>
+</html>
