@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .box {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 10px;
+            width: 350px;
+            box-shadow: 0 0 10px black;
+        }
+        input, button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+        }
+        input {
+            background: #334155;
+            color: white;
+        }
+        button {
+            background: #22c55e;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #16a34a;
+        }
+        p {
+            margin-top: 15px;
+            text-align: center;
+        }
+        a {
+            color: #38bdf8;
+            text-decoration: none;
+        }
+        #msg {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2 style="text-align:center;">Signup</h2>
+
+    <input type="text" id="userName" placeholder="Enter Username" required>
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+
+    <button onclick="signup()">Signup</button>
+
+    <div id="msg"></div>
+
+    <p>Already have an account? <a href="login.html">Login</a></p>
+</div>
+
+<script>
+    async function signup() {
+        const userName = document.getElementById("userName").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        const userData = {
+            userName: userName,
+            email: email,
+            password: password
+        };
+
+        const response = await fetch("http://localhost:8080/api/auth/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(userData)
+        });
+
+        const result = await response.text();
+
+        document.getElementById("msg").innerHTML = result;
+
+        if (response.ok) {
+            document.getElementById("msg").style.color = "lightgreen";
+        } else {
+            document.getElementById("msg").style.color = "red";
+        }
+    }
+</script>
+
+</body>
+</html>
