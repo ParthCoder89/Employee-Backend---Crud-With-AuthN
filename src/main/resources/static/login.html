@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .box {
+            background: #1e293b;
+            padding: 25px;
+            border-radius: 10px;
+            width: 350px;
+            box-shadow: 0 0 10px black;
+        }
+        input, button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+        }
+        input {
+            background: #334155;
+            color: white;
+        }
+        button {
+            background: #3b82f6;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        p {
+            margin-top: 15px;
+            text-align: center;
+        }
+        a {
+            color: #38bdf8;
+            text-decoration: none;
+        }
+        #msg {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2 style="text-align:center;">Login</h2>
+
+    <input type="text" id="userName" placeholder="Enter Username" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+
+    <button onclick="login()">Login</button>
+
+    <div id="msg"></div>
+
+    <p>Don't have an account? <a href="signup.html">Signup</a></p>
+</div>
+
+<script>
+    async function login() {
+        const userName = document.getElementById("userName").value;
+        const password = document.getElementById("password").value;
+
+        if(userName.trim() === "" || password.trim() === ""){
+            document.getElementById("msg").style.color = "red";
+            document.getElementById("msg").innerHTML = "Please fill all fields!";
+            return;
+        }
+
+        const loginData = { userName, password };
+
+        const response = await fetch("http://localhost:8080/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(loginData)
+        });
+
+        const result = await response.text();
+
+        if (response.ok) {
+            localStorage.setItem("token", result);
+
+            document.getElementById("msg").style.color = "lightgreen";
+            document.getElementById("msg").innerHTML = "Login Successful! Redirecting...";
+
+            setTimeout(() => {
+                window.location.href = "ecrud.html";
+            }, 1000);
+
+        } else {
+            document.getElementById("msg").style.color = "red";
+            document.getElementById("msg").innerHTML = result;
+        }
+    }
+</script>
+
+
+</body>
+</html>
