@@ -1,8 +1,11 @@
 package com.example.EmployeeManagement.with.AuthN.Auth.AuthSecurity;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,11 +26,30 @@ public class AUserJwtUtil {
                 .compact();
     }
 
-    public String extractUserName(String token){
-        return Jwts.parser()
+    public String extractUserName(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(key)
-                .parseClaimsJwt(token)
+                .build()
+                .parseClaimsJws(token)   // ✅ correct method
                 .getBody()
                 .getSubject();
+    }
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);   // ✅ if parse successful -> valid token
+            return true;
+        } catch (ExpiredJwtException e) {
+            System.out.println("JWT Expired!");
+        } catch (MalformedJwtException e) {
+            System.out.println("JWT Malformed!");
+        } catch (SignatureException e) {
+            System.out.println("JWT Signature Invalid!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("JWT Token is null or empty!");
+        }
+        return false;
     }
 }
