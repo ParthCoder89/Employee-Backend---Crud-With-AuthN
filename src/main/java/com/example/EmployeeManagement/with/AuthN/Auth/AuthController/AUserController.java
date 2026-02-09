@@ -38,7 +38,6 @@ public class AUserController {
             throw new AuserException("Wrong Password");
         }
         return aUserJwtUtil.generateToken(aUser.getUserName());
-
     }
 
 }
